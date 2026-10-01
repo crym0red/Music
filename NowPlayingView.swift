@@ -39,7 +39,6 @@ struct MiniPlayer: View {
                     }
                     .buttonStyle(.plain)
                 }
-                .buttonStyle(.plain)
             }
             .padding(8)
             .background(.ultraThinMaterial)

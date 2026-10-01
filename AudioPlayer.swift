@@ -191,9 +191,11 @@ final class AudioPlayer: NSObject, ObservableObject {
             guard let self else { return }
             let current = time.seconds
             let total = player?.currentItem?.duration.seconds ?? 0
-            self.duration = total.isFinite && total > 0 ? total : self.duration
-            self.progress = self.duration > 0 ? min(max(current / self.duration, 0), 1) : 0
-            self.updateNowPlaying()
+            Task { @MainActor in
+                self.duration = total.isFinite && total > 0 ? total : self.duration
+                self.progress = self.duration > 0 ? min(max(current / self.duration, 0), 1) : 0
+                self.updateNowPlaying()
+            }
         }
     }
 
