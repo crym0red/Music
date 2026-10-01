@@ -12,14 +12,11 @@ struct LibraryView: View {
     private let columns = Array(repeating: GridItem(.flexible(), spacing: 8), count: 4)
 
     var body: some View {
-        GeometryReader { proxy in
+        GeometryReader { _ in
             VStack(spacing: 0) {
-                // The header is outside the scrolling content so it stays fixed.
-                // Safe-area padding is applied above it, preserving the same 64pt
-                // header height while keeping it below the Dynamic Island/status bar.
-                Color.clear
-                    .frame(height: proxy.safeAreaInsets.top)
-
+                // Keep the 64pt toolbar content height, but place it below the
+                // real iOS status/Dynamic Island safe area. The entire header is
+                // fixed above the scroll view and spans the full screen width.
                 topBar()
 
                 ScrollView(showsIndicators: false) {
@@ -146,35 +143,42 @@ struct LibraryView: View {
     }
 
     private func topBar() -> some View {
-        HStack(spacing: 0) {
-            Text("Your Library")
-                .font(.system(size: 21, weight: .bold, design: .rounded))
-                .lineLimit(1)
+        VStack(spacing: 0) {
+            Color.clear
+                .frame(height: FugaciousSafeArea.top)
 
-            Spacer(minLength: 12)
+            HStack(spacing: 0) {
+                Text("Your Library")
+                    .font(.system(size: 21, weight: .bold, design: .rounded))
+                    .lineLimit(1)
 
-            HStack(spacing: 19) {
-                Button { showSearch = true } label: {
-                    Image(systemName: "magnifyingglass")
+                Spacer(minLength: 12)
+
+                HStack(spacing: 19) {
+                    Button { showSearch = true } label: {
+                        Image(systemName: "magnifyingglass")
+                    }
+                    .accessibilityLabel("Search")
+
+                    Button { showImporter = true } label: {
+                        Image(systemName: "plus")
+                    }
+                    .accessibilityLabel("Add music")
+
+                    Button { showProfile = true } label: {
+                        Image(systemName: "person.crop.circle")
+                    }
+                    .accessibilityLabel("Profile")
                 }
-                .accessibilityLabel("Search")
-
-                Button { showImporter = true } label: {
-                    Image(systemName: "plus")
-                }
-                .accessibilityLabel("Add music")
-
-                Button { showProfile = true } label: {
-                    Image(systemName: "person.crop.circle")
-                }
-                .accessibilityLabel("Profile")
+                .font(.system(size: 20, weight: .medium))
             }
-            .font(.system(size: 20, weight: .medium))
+            .foregroundStyle(.white)
+            .padding(.horizontal, 20)
+            .frame(maxWidth: .infinity)
+            .frame(height: 64)
+            .offset(y: 8)
         }
-        .foregroundStyle(.white)
-        .padding(.horizontal, 20)
         .frame(maxWidth: .infinity)
-        .frame(height: 64)
         .background {
             Rectangle()
                 .fill(.ultraThinMaterial)
@@ -187,9 +191,20 @@ struct LibraryView: View {
         .contentShape(Rectangle())
     }
 
+
     private func play(_ track: Track) {
         app.player.play(track, from: app.library.allTracks)
         app.library.recordPlay(track)
+    }
+}
+
+private enum FugaciousSafeArea {
+    static var top: CGFloat {
+        UIApplication.shared.connectedScenes
+            .compactMap { $0 as? UIWindowScene }
+            .flatMap { $0.windows }
+            .first(where: { $0.isKeyWindow })?
+            .safeAreaInsets.top ?? 0
     }
 }
 

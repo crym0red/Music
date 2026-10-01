@@ -204,6 +204,10 @@ final class LibraryStore: ObservableObject {
             }
         favorites = Set(state.favorites.filter { validIDs.contains($0) })
         recentlyPlayed = state.recentlyPlayed.filter { validIDs.contains($0) }
+
+        // Persist migrations immediately so removed placeholder data such as the
+        // old "999" playlist cannot reappear on the next launch.
+        save()
     }
 
     private func save() {
