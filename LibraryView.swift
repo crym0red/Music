@@ -12,7 +12,7 @@ struct LibraryView: View {
     private let columns = Array(repeating: GridItem(.flexible(), spacing: 8), count: 4)
 
     var body: some View {
-        GeometryReader { _ in
+        GeometryReader { proxy in
             VStack(spacing: 0) {
                 // Keep the 64pt toolbar content height, but place it below the
                 // real iOS status/Dynamic Island safe area. The entire header is
