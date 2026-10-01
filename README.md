@@ -92,3 +92,22 @@ Assets.xcassets/
 API_CONTRACT.md
 README.md
 ```
+
+
+## App identity
+
+- Display name: `Fugacious`
+- Bundle identifier: `com.fugacious.music`
+- App icon: `Fugacious/Assets.xcassets/AppIcon.appiconset`
+
+The project contains no `8spine` bundle identifier.
+
+## IPA packaging
+
+The GitHub workflow creates a standard iOS `.ipa` containing:
+
+```text
+Payload/Fugacious.app/
+```
+
+The app executable is the `Fugacious` Mach-O inside the `.app`. The build is intentionally unsigned (`CODE_SIGNING_ALLOWED=NO`); signing is required before installation on a physical iOS device.
