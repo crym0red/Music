@@ -70,3 +70,12 @@ The onboarding screen uses `Image("FugaciousMark")`, while the application targe
 ## Swift build fix
 
 `OnboardingView.swift` uses normal Swift decimal literals such as `0.25`, `0.72`, and `0.015`. No leading-dot numeric literals remain.
+
+
+## Edge-to-edge layout
+
+Fugacious now treats `RootView` as the full scene root. The root and onboarding backgrounds use `ignoresSafeArea()`, while interactive controls use the scene's safe-area insets for their readable placement.
+
+This follows the same public SwiftUI edge-to-edge layout approach used in the supplied DELvEK source, whose Flek home view explicitly ignores the top and bottom safe areas. Apple's SwiftUI documentation likewise recommends `ignoresSafeArea` when a background should extend to the display edges.
+
+If Fugacious is launched inside another app/container that deliberately constrains its window to a smaller rectangle, the host controls that outer window size; Fugacious cannot expand beyond a host-imposed window frame.

@@ -9,16 +9,22 @@ struct RootView: View {
     @AppStorage("hasCompletedFugaciousOnboarding") private var hasCompletedOnboarding = false
 
     var body: some View {
-        if !hasCompletedOnboarding {
-            OnboardingView()
-        } else {
-            mainInterface
+        Group {
+            if !hasCompletedOnboarding {
+                OnboardingView()
+            } else {
+                mainInterface
+            }
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(Color.fugaciousBackground.ignoresSafeArea())
+        .ignoresSafeArea()
     }
 
     private var mainInterface: some View {
         ZStack {
-            Color.fugaciousBackground.ignoresSafeArea()
+            Color.fugaciousBackground
+                .ignoresSafeArea()
 
             Group {
                 switch selection {
@@ -38,6 +44,7 @@ struct RootView: View {
                     LibraryView(showSearch: $showSearch, showAdd: $showAdd, showProfile: $showProfile)
                 }
             }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
 
             VStack(spacing: 0) {
                 Spacer()
@@ -46,7 +53,9 @@ struct RootView: View {
                     .padding(.bottom, 7)
                 TabBar(selection: $selection)
             }
+            .ignoresSafeArea(edges: .bottom)
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
         .sheet(isPresented: $showSearch) { SearchView() }
         .sheet(isPresented: $showAdd) { AddMenuView() }
         .sheet(isPresented: $showProfile) { ProfileView() }
@@ -71,6 +80,7 @@ struct TabBar: View {
         .overlay(alignment: .top) {
             Rectangle().fill(.white.opacity(0.07)).frame(height: 1)
         }
+        .ignoresSafeArea(edges: .bottom)
     }
 
     private func tab(_ icon: String, _ title: String, _ value: Int) -> some View {
