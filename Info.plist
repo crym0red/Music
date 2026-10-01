@@ -3,11 +3,11 @@
 <plist version="1.0">
 <dict>
     <key>CFBundleDisplayName</key>
-    <string>8Spine</string>
+    <string>Fugacious</string>
     <key>CFBundleIdentifier</key>
     <string>com.8spine.music</string>
     <key>CFBundleName</key>
-    <string>8Spine</string>
+    <string>Fugacious</string>
     <key>CFBundlePackageType</key>
     <string>APPL</string>
     <key>UILaunchScreen</key>

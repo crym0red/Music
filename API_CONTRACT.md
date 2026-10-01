@@ -1,4 +1,4 @@
-# 8Spine API Contract
+# Fugacious API Contract
 
 The UI and networking layer are intentionally separated from the server implementation.
 
@@ -55,4 +55,4 @@ Returns the authenticated user's playlists.
 
 ## Important
 
-These paths are scaffolding because no 8Spine backend/API contract was supplied with the screenshots. Replace the paths and JSON models with the actual server contract when available; the UI does not need to change.
+These paths are scaffolding because no Fugacious backend/API contract was supplied with the screenshots. Replace the paths and JSON models with the actual server contract when available; the UI does not need to change.

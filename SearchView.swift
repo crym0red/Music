@@ -52,7 +52,7 @@ struct ProfileView: View {
                 Image(systemName: "person.crop.circle.fill")
                     .font(.system(size: 70))
                     .foregroundStyle(.white.opacity(0.8))
-                Text("8Spine")
+                Text("Fugacious")
                     .font(.title.bold())
                 Text("Account & Settings")
                     .foregroundStyle(.secondary)

@@ -18,8 +18,16 @@ jobs:
 
       - name: Select Xcode
         run: |
-          sudo xcode-select -s /Applications/Xcode.app
+          set -euo pipefail
+          sudo xcode-select -s /Applications/Xcode_16.4.app/Contents/Developer
           xcodebuild -version
+
+      - name: Verify project
+        run: |
+          set -euo pipefail
+          test -d "Fugacious.xcodeproj"
+          test -f "Fugacious.xcodeproj/project.pbxproj"
+          xcodebuild -list -project "Fugacious.xcodeproj"
 
       - name: Build unsigned app
         run: |
@@ -29,30 +37,30 @@ jobs:
           mkdir -p build Payload
 
           xcodebuild \
-            -project 8Spine/8Spine.xcodeproj \
-            -scheme 8Spine \
+            -project "Fugacious.xcodeproj" \
+            -scheme "Fugacious" \
             -configuration Release \
             -sdk iphoneos \
-            -derivedDataPath build/DerivedData \
+            -derivedDataPath "build/DerivedData" \
             CODE_SIGNING_ALLOWED=NO \
             CODE_SIGNING_REQUIRED=NO \
             CODE_SIGN_IDENTITY="" \
             build
 
-          APP_PATH="build/DerivedData/Build/Products/Release-iphoneos/8Spine.app"
+          APP_PATH="build/DerivedData/Build/Products/Release-iphoneos/Fugacious.app"
 
           test -d "$APP_PATH"
-          cp -R "$APP_PATH" Payload/8Spine.app
+          cp -R "$APP_PATH" "Payload/Fugacious.app"
 
-          /usr/bin/zip -qry build/8Spine-unsigned.ipa Payload
+          /usr/bin/zip -qry "build/Fugacious-unsigned.ipa" Payload
 
           echo "Created:"
-          ls -lh build/8Spine-unsigned.ipa
+          ls -lh "build/Fugacious-unsigned.ipa"
 
       - name: Upload unsigned IPA
         uses: actions/upload-artifact@v4
         with:
-          name: 8Spine-unsigned-ipa
-          path: build/8Spine-unsigned.ipa
+          name: Fugacious-unsigned-ipa
+          path: build/Fugacious-unsigned.ipa
           if-no-files-found: error
           retention-days: 14
