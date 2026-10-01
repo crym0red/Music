@@ -77,7 +77,7 @@ struct NowPlayingScreen: View {
 
                 HStack {
                     Button {
-                        // Previous-track queue handling goes here.
+                        player.previous()
                     } label: {
                         Image(systemName: "backward.fill")
                     }
@@ -96,7 +96,7 @@ struct NowPlayingScreen: View {
                     .buttonStyle(.plain)
 
                     Button {
-                        // Next-track queue handling goes here.
+                        player.next()
                     } label: {
                         Image(systemName: "forward.fill")
                     }
@@ -104,6 +104,23 @@ struct NowPlayingScreen: View {
                 }
                 .font(.system(size: 20, weight: .semibold))
                 .foregroundStyle(.white)
+
+                HStack(spacing: 34) {
+                    Button { player.shuffleEnabled.toggle() } label: {
+                        Image(systemName: "shuffle")
+                            .foregroundStyle(player.shuffleEnabled ? .white : .white.opacity(0.45))
+                    }
+                    Button {
+                        switch player.repeatMode {
+                        case .off: player.repeatMode = .all
+                        case .all: player.repeatMode = .one
+                        case .one: player.repeatMode = .off
+                        }
+                    } label: {
+                        Image(systemName: player.repeatMode == .one ? "repeat.1" : "repeat")
+                            .foregroundStyle(player.repeatMode == .off ? .white.opacity(0.45) : .white)
+                    }
+                }
             } else {
                 Text("Nothing playing")
                     .font(.title2.bold())

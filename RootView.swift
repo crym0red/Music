@@ -33,13 +33,9 @@ struct RootView: View {
                 case 1:
                     SearchView()
                 case 2:
-                    Text("Your playlists")
-                        .font(.largeTitle.bold())
-                        .foregroundStyle(.white)
+                    LibraryTracksView()
                 case 3:
-                    Text("Now Playing")
-                        .font(.largeTitle.bold())
-                        .foregroundStyle(.white)
+                    NowPlayingScreen(player: app.player)
                 default:
                     LibraryView(showSearch: $showSearch, showAdd: $showAdd, showProfile: $showProfile)
                 }
@@ -60,6 +56,7 @@ struct RootView: View {
         .sheet(isPresented: $showAdd) { AddMenuView() }
         .sheet(isPresented: $showProfile) { ProfileView() }
         .environmentObject(app)
+        .environmentObject(app.library)
     }
 }
 

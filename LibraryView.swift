@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct LibraryView: View {
+    @EnvironmentObject private var app: AppContainer
     @Binding var showSearch: Bool
     @Binding var showAdd: Bool
     @Binding var showProfile: Bool
@@ -25,9 +26,19 @@ struct LibraryView: View {
                         // The floating header now carries the section identity.
 
                         LazyVGrid(columns: columns, spacing: 7) {
-                            ForEach(MockData.libraryTracks) { track in
+                            ForEach(app.library.importedTracks.isEmpty ? MockData.libraryTracks : app.library.importedTracks) { track in
                                 ArtworkView(style: track.artwork, cornerRadius: 7)
                                     .aspectRatio(1, contentMode: .fit)
+                                    .contentShape(Rectangle())
+                                    .onTapGesture {
+                                        app.player.play(track, from: app.library.allTracks)
+                                        app.library.recordPlay(track)
+                                    }
+                                    .contextMenu {
+                                        Button { app.library.toggleFavorite(track) } label: {
+                                            Label(app.library.isFavorite(track) ? "Remove Favorite" : "Favorite", systemImage: app.library.isFavorite(track) ? "heart.slash" : "heart")
+                                        }
+                                    }
                             }
                         }
 
