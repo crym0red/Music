@@ -76,7 +76,24 @@ struct TabBar: View {
         .padding(.horizontal, 20)
         .padding(.top, 12)
         .padding(.bottom, 10)
-        .background(.ultraThinMaterial)
+        .background {
+            ZStack {
+                Rectangle()
+                    .fill(.ultraThinMaterial)
+
+                Rectangle()
+                    .fill(
+                        LinearGradient(
+                            colors: [
+                                Color.fugaciousCard.opacity(0.82),
+                                Color.fugaciousTabBar.opacity(0.72)
+                            ],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+            }
+        }
         .overlay(alignment: .top) {
             Rectangle().fill(.white.opacity(0.07)).frame(height: 1)
         }
@@ -103,4 +120,5 @@ struct TabBar: View {
 extension Color {
     static let fugaciousBackground = Color(red: 0.018, green: 0.008, blue: 0.07)
     static let fugaciousCard = Color(red: 0.045, green: 0.025, blue: 0.105)
+    static let fugaciousTabBar = Color(red: 0.06, green: 0.045, blue: 0.11)
 }

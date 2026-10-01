@@ -5,121 +5,188 @@ struct LibraryView: View {
     @Binding var showAdd: Bool
     @Binding var showProfile: Bool
 
+    @State private var playlistHeaderY: CGFloat = .greatestFiniteMagnitude
+
     private let columns = Array(repeating: GridItem(.flexible(), spacing: 7), count: 4)
 
-    var body: some View {
-        NavigationStack {
-            ScrollView(showsIndicators: false) {
-                VStack(alignment: .leading, spacing: 22) {
-                    hero
-
-                    sectionHeader("Your Library") {
-                        HStack(spacing: 15) {
-                            Button { showSearch = true } label: {
-                                Image(systemName: "magnifyingglass")
-                            }
-                            Button { showAdd = true } label: {
-                                Image(systemName: "plus")
-                            }
-                            Button { showProfile = true } label: {
-                                Image(systemName: "person.crop.circle")
-                            }
-                        }
-                        .foregroundStyle(.white)
-                    }
-
-                    LazyVGrid(columns: columns, spacing: 7) {
-                        ForEach(MockData.libraryTracks) { track in
-                            ArtworkView(style: track.artwork, cornerRadius: 7)
-                                .aspectRatio(1, contentMode: .fit)
-                        }
-                    }
-
-                    Text("PINNED")
-                        .font(.system(size: 8, weight: .bold))
-                        .tracking(2)
-                        .foregroundStyle(.white.opacity(0.42))
-                        .frame(maxWidth: .infinity)
-                        .padding(.top, -7)
-
-                    sectionHeader("Playlists")
-
-                    ScrollView(.horizontal, showsIndicators: false) {
-                        HStack(spacing: 9) {
-                            ForEach(MockData.playlists) { playlist in
-                                PlaylistCard(playlist: playlist)
-                            }
-                        }
-                    }
-
-                    sectionHeader("Albums", chevron: true)
-
-                    ScrollView(.horizontal, showsIndicators: false) {
-                        HStack(spacing: 12) {
-                            ForEach(MockData.albums) { album in
-                                AlbumCard(album: album)
-                            }
-                        }
-                    }
-
-                    NavigationLink {
-                        ArtistView(artist: MockData.artist)
-                    } label: {
-                        ArtistBanner(artist: MockData.artist)
-                    }
-                    .buttonStyle(.plain)
-
-                    Color.clear.frame(height: 100)
-                }
-                .padding(.horizontal, 17)
-                .padding(.top, 12)
-            }
-            .toolbar(.hidden, for: .navigationBar)
-        }
+    private var activeTitle: String {
+        playlistHeaderY < 165 ? "Playlists" : "Your Library"
     }
 
-    private var hero: some View {
-        VStack(alignment: .leading, spacing: 2) {
-            Text("8")
-                .font(.system(size: 46, weight: .black, design: .rounded))
-                .foregroundStyle(.white)
-            Text("Organize your")
-                .font(.system(size: 30, weight: .black, design: .rounded))
-            Text("library however you")
-                .font(.system(size: 30, weight: .black, design: .rounded))
-            Text("want")
-                .font(.system(size: 30, weight: .black, design: .rounded))
+    var body: some View {
+        GeometryReader { proxy in
+            ZStack(alignment: .top) {
+                Color.fugaciousBackground
+                    .ignoresSafeArea()
+
+                ScrollView(showsIndicators: false) {
+                    VStack(alignment: .leading, spacing: 22) {
+                        // The large promotional copy has intentionally been removed.
+                        // The floating header now carries the section identity.
+
+                        LazyVGrid(columns: columns, spacing: 7) {
+                            ForEach(MockData.libraryTracks) { track in
+                                ArtworkView(style: track.artwork, cornerRadius: 7)
+                                    .aspectRatio(1, contentMode: .fit)
+                            }
+                        }
+
+                        Text("PINNED")
+                            .font(.system(size: 8, weight: .bold))
+                            .tracking(2)
+                            .foregroundStyle(.white.opacity(0.42))
+                            .frame(maxWidth: .infinity)
+                            .padding(.top, -7)
+
+                        GeometryReader { sectionProxy in
+                            Color.clear
+                                .preference(
+                                    key: PlaylistHeaderPositionKey.self,
+                                    value: sectionProxy.frame(in: .named("libraryScroll")).minY
+                                )
+                        }
+                        .frame(height: 0)
+
+                        sectionHeader("Playlists")
+
+                        ScrollView(.horizontal, showsIndicators: false) {
+                            HStack(spacing: 9) {
+                                ForEach(MockData.playlists) { playlist in
+                                    PlaylistCard(playlist: playlist)
+                                }
+                            }
+                        }
+
+                        sectionHeader("Albums", chevron: true)
+
+                        ScrollView(.horizontal, showsIndicators: false) {
+                            HStack(spacing: 12) {
+                                ForEach(MockData.albums) { album in
+                                    AlbumCard(album: album)
+                                }
+                            }
+                        }
+
+                        NavigationLink {
+                            ArtistView(artist: MockData.artist)
+                        } label: {
+                            ArtistBanner(artist: MockData.artist)
+                        }
+                        .buttonStyle(.plain)
+
+                        Color.clear.frame(height: 130)
+                    }
+                    .padding(.horizontal, 17)
+                    .padding(.top, proxy.safeAreaInsets.top + 72)
+                    .padding(.bottom, proxy.safeAreaInsets.bottom + 110)
+                }
+                .coordinateSpace(name: "libraryScroll")
+                .onPreferenceChange(PlaylistHeaderPositionKey.self) { value in
+                    playlistHeaderY = value
+                }
+
+                floatingHeader(topInset: proxy.safeAreaInsets.top)
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
-        .foregroundStyle(.white)
-        .padding(.vertical, 20)
+        .toolbar(.hidden, for: .navigationBar)
+    }
+
+    private func floatingHeader(topInset: CGFloat) -> some View {
+        HStack(spacing: 0) {
+            Text(activeTitle)
+                .font(.system(size: 19, weight: .bold, design: .rounded))
+                .foregroundStyle(.white)
+                .contentTransition(.opacity)
+
+            Spacer()
+
+            HStack(spacing: 15) {
+                Button { showSearch = true } label: {
+                    Image(systemName: "magnifyingglass")
+                }
+                Button { showAdd = true } label: {
+                    Image(systemName: "plus")
+                }
+                Button { showProfile = true } label: {
+                    Image(systemName: "person.crop.circle")
+                }
+            }
+            .font(.system(size: 20, weight: .medium))
+            .foregroundStyle(.white)
+        }
+        .padding(.horizontal, 17)
+        .frame(height: 54)
+        .background {
+            ZStack {
+                RoundedRectangle(cornerRadius: 18, style: .continuous)
+                    .fill(.ultraThinMaterial)
+
+                RoundedRectangle(cornerRadius: 18, style: .continuous)
+                    .fill(
+                        LinearGradient(
+                            colors: [
+                                Color.fugaciousCard.opacity(0.82),
+                                Color.fugaciousTabBar.opacity(0.72)
+                            ],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+
+                RoundedRectangle(cornerRadius: 18, style: .continuous)
+                    .stroke(.white.opacity(0.08), lineWidth: 1)
+            }
+        }
+        .padding(.horizontal, 12)
+        .padding(.top, topInset + 8)
+        .shadow(color: .black.opacity(0.22), radius: 16, y: 8)
+        .animation(.easeOut(duration: 0.18), value: activeTitle)
     }
 
     @ViewBuilder
-    private func sectionHeader(_ title: String, chevron: Bool = false, @ViewBuilder trailing: () -> some View = { EmptyView() }) -> some View {
+    private func sectionHeader(
+        _ title: String,
+        chevron: Bool = false,
+        @ViewBuilder trailing: () -> some View = { EmptyView() }
+    ) -> some View {
         HStack {
             Text(title)
                 .font(.system(size: 19, weight: .bold, design: .rounded))
                 .foregroundStyle(.white)
+
             if chevron {
                 Image(systemName: "chevron.right")
                     .font(.system(size: 13, weight: .bold))
                     .foregroundStyle(.white.opacity(0.6))
             }
+
             Spacer()
             trailing()
         }
     }
 }
 
+private struct PlaylistHeaderPositionKey: PreferenceKey {
+    static var defaultValue: CGFloat = .greatestFiniteMagnitude
+
+    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
+        value = nextValue()
+    }
+}
+
 struct PlaylistCard: View {
     let playlist: Playlist
+
     var body: some View {
         VStack(alignment: .leading, spacing: 7) {
             ArtworkView(style: playlist.artwork, cornerRadius: 8)
                 .frame(width: 102, height: 102)
+
             Text(playlist.title)
                 .font(.system(size: 12, weight: .semibold))
                 .lineLimit(1)
+
             Text(playlist.subtitle)
                 .font(.system(size: 9))
                 .foregroundStyle(.white.opacity(0.45))
@@ -130,12 +197,15 @@ struct PlaylistCard: View {
 
 struct AlbumCard: View {
     let album: Album
+
     var body: some View {
         VStack(alignment: .leading, spacing: 7) {
             ArtworkView(style: album.artwork, cornerRadius: 8)
                 .frame(width: 145, height: 145)
+
             Text(album.title)
                 .font(.system(size: 12, weight: .semibold))
+
             Text(album.artist)
                 .font(.system(size: 10))
                 .foregroundStyle(.white.opacity(0.45))
@@ -146,21 +216,26 @@ struct AlbumCard: View {
 
 struct ArtistBanner: View {
     let artist: Artist
+
     var body: some View {
         HStack(spacing: 14) {
             ArtworkView(style: artist.artwork, cornerRadius: 10)
                 .frame(width: 72, height: 72)
+
             VStack(alignment: .leading, spacing: 5) {
                 Text("FULL ARTIST DISCOGRAPHIES")
                     .font(.system(size: 8, weight: .bold))
                     .tracking(1.4)
                     .foregroundStyle(.white.opacity(0.5))
+
                 Text(artist.name)
                     .font(.system(size: 20, weight: .bold, design: .rounded))
+
                 Text("View artist")
                     .font(.system(size: 11, weight: .medium))
                     .foregroundStyle(.white.opacity(0.55))
             }
+
             Spacer()
         }
         .padding(12)

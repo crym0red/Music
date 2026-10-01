@@ -79,3 +79,14 @@ Fugacious now treats `RootView` as the full scene root. The root and onboarding 
 This follows the same public SwiftUI edge-to-edge layout approach used in the supplied DELvEK source, whose Flek home view explicitly ignores the top and bottom safe areas. Apple's SwiftUI documentation likewise recommends `ignoresSafeArea` when a background should extend to the display edges.
 
 If Fugacious is launched inside another app/container that deliberately constrains its window to a smaller rectangle, the host controls that outer window size; Fugacious cannot expand beyond a host-imposed window frame.
+
+
+## Library UI
+
+The Library screen uses a floating, edge-to-edge header. The large introductory copy was removed so the library content starts immediately below the floating bar.
+
+The floating bar keeps Search, Add, and Profile fixed while the title changes based on the scroll position:
+- `Your Library` near the top
+- `Playlists` once the playlist section reaches the header area
+
+The floating header and bottom tab bar share the same translucent Fugacious material/gradient treatment.
