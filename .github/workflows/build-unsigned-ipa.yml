@@ -22,13 +22,14 @@ jobs:
           sudo xcode-select -s /Applications/Xcode_16.4.app/Contents/Developer
           xcodebuild -version
 
-      - name: Verify project
+      - name: Verify repository layout
         run: |
           set -euo pipefail
           test -d "Fugacious.xcodeproj"
           test -f "Fugacious.xcodeproj/project.pbxproj"
           test -f "Fugacious/Info.plist"
           test -f "Fugacious/Assets.xcassets/Contents.json"
+          test -f "Fugacious/Assets.xcassets/AppIcon.appiconset/Contents.json"
           xcodebuild -list -project "Fugacious.xcodeproj"
 
       - name: Build unsigned app
@@ -50,13 +51,25 @@ jobs:
             build
 
           APP_PATH="build/DerivedData/Build/Products/Release-iphoneos/Fugacious.app"
+          EXECUTABLE="$APP_PATH/Fugacious"
 
           test -d "$APP_PATH"
+          test -f "$APP_PATH/Info.plist"
+          test -f "$EXECUTABLE"
+          test -x "$EXECUTABLE"
+
+          /usr/libexec/PlistBuddy -c "Print :CFBundleIdentifier" "$APP_PATH/Info.plist"
+          /usr/libexec/PlistBuddy -c "Print :CFBundleExecutable" "$APP_PATH/Info.plist"
+
+          file "$EXECUTABLE"
+          /usr/bin/lipo -info "$EXECUTABLE" || true
+
           cp -R "$APP_PATH" "Payload/Fugacious.app"
 
           /usr/bin/zip -qry "build/Fugacious-unsigned.ipa" Payload
 
-          echo "Created:"
+          test -s "build/Fugacious-unsigned.ipa"
+          unzip -l "build/Fugacious-unsigned.ipa" | grep -E "Payload/Fugacious.app/Fugacious$"
           ls -lh "build/Fugacious-unsigned.ipa"
 
       - name: Upload unsigned IPA
