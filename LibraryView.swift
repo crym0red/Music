@@ -1,4 +1,6 @@
 import SwiftUI
+import UIKit
+import UniformTypeIdentifiers
 
 struct LibraryView: View {
     @EnvironmentObject private var app: AppContainer
@@ -45,19 +47,13 @@ struct LibraryView: View {
             CreatePlaylistView()
                 .environmentObject(app.library)
         }
-        .fileImporter(
-            isPresented: $showImporter,
-            allowedContentTypes: [.audio],
-            allowsMultipleSelection: true
-        ) { result in
-            switch result {
-            case .success(let urls):
+        .sheet(isPresented: $showImporter) {
+            FugaciousDocumentPicker { urls in
                 Task {
                     await app.library.importFiles(urls)
                 }
-            case .failure(let error):
-                print("Fugacious file picker error:", error)
             }
+            .ignoresSafeArea()
         }
     }
 
@@ -158,13 +154,25 @@ struct LibraryView: View {
         HStack(spacing: 0) {
             Text("Your Library")
                 .font(.system(size: 21, weight: .bold, design: .rounded))
+                .lineLimit(1)
 
-            Spacer()
+            Spacer(minLength: 12)
 
             HStack(spacing: 19) {
-                Button { showSearch = true } label: { Image(systemName: "magnifyingglass") }
-                Button { showImporter = true } label: { Image(systemName: "plus") }
-                Button { showProfile = true } label: { Image(systemName: "person.crop.circle") }
+                Button { showSearch = true } label: {
+                    Image(systemName: "magnifyingglass")
+                }
+                .accessibilityLabel("Search")
+
+                Button { showImporter = true } label: {
+                    Image(systemName: "plus")
+                }
+                .accessibilityLabel("Add music")
+
+                Button { showProfile = true } label: {
+                    Image(systemName: "person.crop.circle")
+                }
+                .accessibilityLabel("Profile")
             }
             .font(.system(size: 20, weight: .medium))
         }
@@ -176,9 +184,12 @@ struct LibraryView: View {
             Rectangle()
                 .fill(.ultraThinMaterial)
                 .overlay(alignment: .bottom) {
-                    Rectangle().fill(.white.opacity(0.07)).frame(height: 1)
+                    Rectangle()
+                        .fill(.white.opacity(0.07))
+                        .frame(height: 1)
                 }
         }
+        .contentShape(Rectangle())
     }
 
     private func play(_ track: Track) {
@@ -244,6 +255,47 @@ struct CreatePlaylistView: View {
             }
             .navigationTitle("New Playlist")
             .navigationBarTitleDisplayMode(.inline)
+        }
+    }
+}
+
+
+/// Uses the native Files document picker with `asCopy: true`. This avoids the
+/// security-scoped/iCloud URL failures that can occur with SwiftUI's
+/// `.fileImporter` when a provider hands back a temporary or coordinated URL.
+struct FugaciousDocumentPicker: UIViewControllerRepresentable {
+    let onPicked: ([URL]) -> Void
+
+    func makeCoordinator() -> Coordinator {
+        Coordinator(onPicked: onPicked)
+    }
+
+    func makeUIViewController(context: Context) -> UIDocumentPickerViewController {
+        let picker = UIDocumentPickerViewController(
+            forOpeningContentTypes: [.audio],
+            asCopy: true
+        )
+        picker.delegate = context.coordinator
+        picker.allowsMultipleSelection = true
+        picker.modalPresentationStyle = .formSheet
+        return picker
+    }
+
+    func updateUIViewController(_ uiViewController: UIDocumentPickerViewController, context: Context) {}
+
+    final class Coordinator: NSObject, UIDocumentPickerDelegate {
+        private let onPicked: ([URL]) -> Void
+
+        init(onPicked: @escaping ([URL]) -> Void) {
+            self.onPicked = onPicked
+        }
+
+        func documentPicker(_ controller: UIDocumentPickerViewController, didPickDocumentsAt urls: [URL]) {
+            let audioURLs = urls.filter {
+                let ext = $0.pathExtension.lowercased()
+                return ["mp3", "m4a", "aac", "wav", "aiff", "aif", "caf", "flac", "alac", "m4b", "mp4"].contains(ext)
+            }
+            onPicked(audioURLs)
         }
     }
 }

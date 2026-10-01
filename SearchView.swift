@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 import UniformTypeIdentifiers
 
 struct SearchView: View {
@@ -98,10 +99,14 @@ struct AddMenuView: View {
                     .font(.footnote).foregroundStyle(.secondary)
             }
             .navigationTitle("Add")
-            .fileImporter(isPresented: $showImporter, allowedContentTypes: [.audio], allowsMultipleSelection: true) { result in
-                if case .success(let urls) = result {
-                    Task { await library.importFiles(urls); dismiss() }
+            .sheet(isPresented: $showImporter) {
+                FugaciousDocumentPicker { urls in
+                    Task {
+                        await library.importFiles(urls)
+                        dismiss()
+                    }
                 }
+                .ignoresSafeArea()
             }
         }
     }
