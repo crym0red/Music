@@ -26,7 +26,7 @@ struct SearchView: View {
             }
             .padding(18)
             .foregroundStyle(.white)
-            .background(Color.spineBackground)
+            .background(Color.fugaciousBackground)
             .toolbar(.hidden, for: .navigationBar)
         }
     }
@@ -63,7 +63,7 @@ struct ProfileView: View {
                 .buttonStyle(.borderedProminent)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .background(Color.spineBackground)
+            .background(Color.fugaciousBackground)
             .foregroundStyle(.white)
             .navigationTitle("Profile")
         }

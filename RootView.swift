@@ -6,10 +6,19 @@ struct RootView: View {
     @State private var showSearch = false
     @State private var showAdd = false
     @State private var showProfile = false
+    @AppStorage("hasCompletedFugaciousOnboarding") private var hasCompletedOnboarding = false
 
     var body: some View {
+        if !hasCompletedOnboarding {
+            OnboardingView()
+        } else {
+            mainInterface
+        }
+    }
+
+    private var mainInterface: some View {
         ZStack {
-            Color.spineBackground.ignoresSafeArea()
+            Color.fugaciousBackground.ignoresSafeArea()
 
             Group {
                 switch selection {
@@ -82,6 +91,6 @@ struct TabBar: View {
 }
 
 extension Color {
-    static let spineBackground = Color(red: 0.018, green: 0.008, blue: 0.07)
-    static let spineCard = Color(red: 0.045, green: 0.025, blue: 0.105)
+    static let fugaciousBackground = Color(red: 0.018, green: 0.008, blue: 0.07)
+    static let fugaciousCard = Color(red: 0.045, green: 0.025, blue: 0.105)
 }

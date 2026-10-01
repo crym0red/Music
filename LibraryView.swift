@@ -164,7 +164,7 @@ struct ArtistBanner: View {
             Spacer()
         }
         .padding(12)
-        .background(Color.spineCard)
+        .background(Color.fugaciousCard)
         .clipShape(RoundedRectangle(cornerRadius: 15, style: .continuous))
     }
 }

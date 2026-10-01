@@ -113,6 +113,6 @@ struct NowPlayingScreen: View {
             Spacer()
         }
         .padding(22)
-        .background(Color.spineBackground.ignoresSafeArea())
+        .background(Color.fugaciousBackground.ignoresSafeArea())
     }
 }

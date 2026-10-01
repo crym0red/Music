@@ -20,6 +20,7 @@
 		AA000012 /* KeychainStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA100013 /* KeychainStore.swift */; };
 		AA000013 /* Persistence.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA100014 /* Persistence.swift */; };
 		AA000014 /* AppContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA100015 /* AppContainer.swift */; };
+		AA000016 /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA100017 /* OnboardingView.swift */; };
 		AA000015 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA100016 /* SettingsView.swift */; };
 /* End PBXBuildFile section */
 
@@ -40,6 +41,7 @@
 		AA100013 /* KeychainStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainStore.swift; sourceTree = SOURCE_ROOT; };
 		AA100014 /* Persistence.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Persistence.swift; sourceTree = SOURCE_ROOT; };
 		AA100015 /* AppContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppContainer.swift; sourceTree = SOURCE_ROOT; };
+		AA100017 /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = SOURCE_ROOT; };
 		AA100016 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = SOURCE_ROOT; };
 /* End PBXFileReference section */
 
@@ -80,6 +82,7 @@
 				AA100014,
 				AA100015,
 				AA100016,
+				AA100017,
 			);
 			sourceTree = "<group>";
 		};
@@ -162,6 +165,7 @@
 				AA000013,
 				AA000014,
 				AA000015,
+				AA000016,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

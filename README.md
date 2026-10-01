@@ -37,3 +37,12 @@ An unsigned IPA can contain a valid executable, but iOS will not launch it on a 
 ## Backend
 
 The screenshots did not provide a production API contract. `APIClient.swift` contains the networking abstraction and placeholder endpoint definitions; replace the base URL and endpoint models when the actual backend contract is available.
+
+
+## Onboarding
+
+First launch shows a three-page onboarding experience inspired by the supplied Fugacious reference: **Fugacious / Off the record. By design.**, **Organize**, and **Listen**. Completion is persisted with `@AppStorage`.
+
+## App icon
+
+The clean Fugacious F mark is included in `AppIcon.appiconset` and a matching `FugaciousMark.imageset` is used by onboarding.

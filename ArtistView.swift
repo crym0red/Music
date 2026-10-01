@@ -7,7 +7,7 @@ struct ArtistView: View {
 
     var body: some View {
         ZStack {
-            Color.spineBackground.ignoresSafeArea()
+            Color.fugaciousBackground.ignoresSafeArea()
 
             ScrollView(showsIndicators: false) {
                 VStack(alignment: .leading, spacing: 22) {
@@ -74,7 +74,7 @@ struct ArtistView: View {
                 .frame(height: 310)
                 .overlay {
                     LinearGradient(
-                        colors: [.clear, Color.spineBackground.opacity(0.15), Color.spineBackground.opacity(0.92)],
+                        colors: [.clear, Color.fugaciousBackground.opacity(0.15), Color.fugaciousBackground.opacity(0.92)],
                         startPoint: .top,
                         endPoint: .bottom
                     )
