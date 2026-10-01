@@ -27,6 +27,8 @@ jobs:
           set -euo pipefail
           test -d "Fugacious.xcodeproj"
           test -f "Fugacious.xcodeproj/project.pbxproj"
+          test -f "Fugacious/Info.plist"
+          test -f "Fugacious/Assets.xcassets/Contents.json"
           xcodebuild -list -project "Fugacious.xcodeproj"
 
       - name: Build unsigned app
