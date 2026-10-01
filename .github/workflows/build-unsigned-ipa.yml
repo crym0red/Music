@@ -22,7 +22,7 @@ jobs:
           sudo xcode-select -s /Applications/Xcode_16.4.app/Contents/Developer
           xcodebuild -version
 
-      - name: Verify repository layout
+      - name: Verify project and assets
         run: |
           set -euo pipefail
           test -d "Fugacious.xcodeproj"
@@ -30,6 +30,7 @@ jobs:
           test -f "Fugacious/Info.plist"
           test -f "Fugacious/Assets.xcassets/Contents.json"
           test -f "Fugacious/Assets.xcassets/AppIcon.appiconset/Contents.json"
+          test -f "Fugacious/Assets.xcassets/FugaciousMark.imageset/FugaciousMark.png"
           xcodebuild -list -project "Fugacious.xcodeproj"
 
       - name: Build unsigned app
@@ -58,14 +59,16 @@ jobs:
           test -f "$EXECUTABLE"
           test -x "$EXECUTABLE"
 
-          /usr/libexec/PlistBuddy -c "Print :CFBundleIdentifier" "$APP_PATH/Info.plist"
-          /usr/libexec/PlistBuddy -c "Print :CFBundleExecutable" "$APP_PATH/Info.plist"
+          BUNDLE_ID=$(/usr/libexec/PlistBuddy -c "Print :CFBundleIdentifier" "$APP_PATH/Info.plist")
+          EXEC_NAME=$(/usr/libexec/PlistBuddy -c "Print :CFBundleExecutable" "$APP_PATH/Info.plist")
+
+          test "$BUNDLE_ID" = "com.fugacious.music"
+          test "$EXEC_NAME" = "Fugacious"
 
           file "$EXECUTABLE"
           /usr/bin/lipo -info "$EXECUTABLE" || true
 
           cp -R "$APP_PATH" "Payload/Fugacious.app"
-
           /usr/bin/zip -qry "build/Fugacious-unsigned.ipa" Payload
 
           test -s "build/Fugacious-unsigned.ipa"

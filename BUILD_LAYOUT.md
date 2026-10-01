@@ -1,15 +1,31 @@
 # Fugacious build layout
 
-The Xcode project intentionally references these committed paths:
+The app entry point is:
 
 ```text
-Fugacious.xcodeproj/
-Fugacious/
-├── Info.plist
-└── Assets.xcassets/
-    ├── Contents.json
-    └── AppIcon.appiconset/
-        └── Contents.json
+FugaciousApp.swift
+    └── RootView()
 ```
 
-The GitHub Actions workflow checks these paths before invoking `xcodebuild`.
+`RootView` decides whether to show:
+
+```text
+OnboardingView
+```
+
+or the main library/player interface based on:
+
+```text
+hasCompletedFugaciousOnboarding
+```
+
+Assets are committed under:
+
+```text
+Fugacious/
+└── Assets.xcassets/
+    ├── AppIcon.appiconset/
+    └── FugaciousMark.imageset/
+```
+
+The Xcode target explicitly compiles the asset catalog and uses `AppIcon` as its application icon.

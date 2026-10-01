@@ -12,7 +12,7 @@ Fugacious/
     └── AppIcon.appiconset/
 ```
 
-The project is at the repository root. There is no `8Spine.xcodeproj` and no `8spine` bundle identifier.
+The project is at the repository root. There is no `Fugacious.xcodeproj` and no `fugacious` bundle identifier.
 
 ## App identity
 
@@ -46,3 +46,27 @@ First launch shows a three-page onboarding experience inspired by the supplied F
 ## App icon
 
 The clean Fugacious F mark is included in `AppIcon.appiconset` and a matching `FugaciousMark.imageset` is used by onboarding.
+
+
+## Root view and assets
+
+`FugaciousApp` launches `RootView`.
+
+`RootView` owns the first-launch decision and presents `OnboardingView` until onboarding is completed.
+
+The target includes the asset catalog at:
+
+```text
+Fugacious/Assets.xcassets
+```
+
+It contains:
+
+- `AppIcon.appiconset`
+- `FugaciousMark.imageset`
+
+The onboarding screen uses `Image("FugaciousMark")`, while the application target uses `AppIcon`.
+
+## Swift build fix
+
+`OnboardingView.swift` uses normal Swift decimal literals such as `0.25`, `0.72`, and `0.015`. No leading-dot numeric literals remain.
