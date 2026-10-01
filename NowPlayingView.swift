@@ -67,19 +67,56 @@ struct NowPlayingScreen: View {
                 ArtworkView(style: track.artwork, artworkData: track.artworkData, cornerRadius: 24)
                     .frame(width: 300, height: 300)
 
-                VStack(spacing: 5) {
+                VStack(spacing: 7) {
                     Text(track.title)
                         .font(.system(size: 25, weight: .bold, design: .rounded))
+                        .multilineTextAlignment(.center)
+                        .lineLimit(3)
+
                     Text(track.artist)
                         .font(.system(size: 14, weight: .medium))
                         .foregroundStyle(.white.opacity(0.5))
+                        .lineLimit(1)
+
+                    if let album = track.album, !album.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                        Text(album)
+                            .font(.system(size: 13, weight: .medium))
+                            .foregroundStyle(.white.opacity(0.34))
+                            .lineLimit(1)
+                    }
+
+                    HStack(spacing: 8) {
+                        if let fileURL = track.fileURL {
+                            Text(fileURL.pathExtension.uppercased())
+                            Text("•")
+                            Text(fileSize(for: fileURL))
+                        }
+
+                        if player.queue.count > 1 {
+                            Text("•")
+                            Text("\(player.queueIndex + 1) of \(player.queue.count)")
+                        }
+                    }
+                    .font(.system(size: 11, weight: .medium))
+                    .foregroundStyle(.white.opacity(0.28))
+                    .lineLimit(1)
                 }
 
-                Slider(value: Binding(
-                    get: { player.progress },
-                    set: { player.seek(to: $0) }
-                ))
-                .tint(.white)
+                VStack(spacing: 5) {
+                    Slider(value: Binding(
+                        get: { player.progress },
+                        set: { player.seek(to: $0) }
+                    ))
+                    .tint(.white)
+
+                    HStack {
+                        Text(formatTime(player.progress * player.duration))
+                        Spacer()
+                        Text("-" + formatTime(max(player.duration - (player.progress * player.duration), 0)))
+                    }
+                    .font(.system(size: 11, weight: .medium, design: .monospaced))
+                    .foregroundStyle(.white.opacity(0.42))
+                }
 
                 HStack {
                     Button {
@@ -137,5 +174,22 @@ struct NowPlayingScreen: View {
         }
         .padding(22)
         .background(Color.fugaciousBackground.ignoresSafeArea())
+    }
+
+    private func formatTime(_ seconds: Double) -> String {
+        guard seconds.isFinite, seconds >= 0 else { return "0:00" }
+        let total = Int(seconds.rounded(.down))
+        let minutes = total / 60
+        let remaining = total % 60
+        return "\(minutes):\(String(format: "%02d", remaining))"
+    }
+
+    private func fileSize(for url: URL) -> String {
+        guard let bytes = try? url.resourceValues(forKeys: [.fileSizeKey]).fileSize else { return "Local file" }
+        let formatter = ByteCountFormatter()
+        formatter.countStyle = .file
+        formatter.includesUnit = true
+        formatter.includesCount = true
+        return formatter.string(fromByteCount: Int64(bytes))
     }
 }
