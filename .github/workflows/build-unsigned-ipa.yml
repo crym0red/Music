@@ -1,0 +1,58 @@
+name: Build unsigned IPA
+
+on:
+  workflow_dispatch:
+  push:
+    branches: ["main"]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: macos-15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Select Xcode
+        run: |
+          sudo xcode-select -s /Applications/Xcode.app
+          xcodebuild -version
+
+      - name: Build unsigned app
+        run: |
+          set -euo pipefail
+
+          rm -rf build Payload
+          mkdir -p build Payload
+
+          xcodebuild \
+            -project 8Spine/8Spine.xcodeproj \
+            -scheme 8Spine \
+            -configuration Release \
+            -sdk iphoneos \
+            -derivedDataPath build/DerivedData \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_IDENTITY="" \
+            build
+
+          APP_PATH="build/DerivedData/Build/Products/Release-iphoneos/8Spine.app"
+
+          test -d "$APP_PATH"
+          cp -R "$APP_PATH" Payload/8Spine.app
+
+          /usr/bin/zip -qry build/8Spine-unsigned.ipa Payload
+
+          echo "Created:"
+          ls -lh build/8Spine-unsigned.ipa
+
+      - name: Upload unsigned IPA
+        uses: actions/upload-artifact@v4
+        with:
+          name: 8Spine-unsigned-ipa
+          path: build/8Spine-unsigned.ipa
+          if-no-files-found: error
+          retention-days: 14

@@ -1,0 +1,226 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {};
+	objectVersion = 56;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		AA000001 /* 8SpineApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA100001 /* 8SpineApp.swift */; };
+		AA000002 /* Models.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA100002 /* Models.swift */; };
+		AA000003 /* ArtworkView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA100003 /* ArtworkView.swift */; };
+		AA000004 /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA100004 /* RootView.swift */; };
+		AA000005 /* LibraryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA100005 /* LibraryView.swift */; };
+		AA000006 /* ArtistView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA100006 /* ArtistView.swift */; };
+		AA000007 /* SearchView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA100007 /* SearchView.swift */; };
+		AA000008 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = AA100008 /* Assets.xcassets */; };
+		AA000009 /* AudioPlayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA100010 /* AudioPlayer.swift */; };
+		AA000010 /* NowPlayingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA100011 /* NowPlayingView.swift */; };
+		AA000011 /* APIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA100012 /* APIClient.swift */; };
+		AA000012 /* KeychainStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA100013 /* KeychainStore.swift */; };
+		AA000013 /* Persistence.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA100014 /* Persistence.swift */; };
+		AA000014 /* AppContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA100015 /* AppContainer.swift */; };
+		AA000015 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA100016 /* SettingsView.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		AA100000 /* 8Spine.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = 8Spine.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		AA100001 /* 8SpineApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = 8SpineApp.swift; sourceTree = "<group>"; };
+		AA100002 /* Models.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models.swift; sourceTree = "<group>"; };
+		AA100003 /* ArtworkView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArtworkView.swift; sourceTree = "<group>"; };
+		AA100004 /* RootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootView.swift; sourceTree = "<group>"; };
+		AA100005 /* LibraryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryView.swift; sourceTree = "<group>"; };
+		AA100006 /* ArtistView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArtistView.swift; sourceTree = "<group>"; };
+		AA100007 /* SearchView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchView.swift; sourceTree = "<group>"; };
+		AA100008 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		AA100009 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		AA100010 /* AudioPlayer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioPlayer.swift; sourceTree = "<group>"; };
+		AA100011 /* NowPlayingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NowPlayingView.swift; sourceTree = "<group>"; };
+		AA100012 /* APIClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIClient.swift; sourceTree = "<group>"; };
+		AA100013 /* KeychainStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainStore.swift; sourceTree = "<group>"; };
+		AA100014 /* Persistence.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Persistence.swift; sourceTree = "<group>"; };
+		AA100015 /* AppContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppContainer.swift; sourceTree = "<group>"; };
+		AA100016 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		AA200001 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = ();
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		AA300001 = {
+			isa = PBXGroup;
+			children = (
+				AA300002 /* 8Spine */,
+				AA300003 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		AA300002 /* 8Spine */ = {
+			isa = PBXGroup;
+			children = (
+				AA100001,
+				AA100002,
+				AA100003,
+				AA100004,
+				AA100005,
+				AA100006,
+				AA100007,
+				AA100008,
+				AA100009,
+				AA100010,
+				AA100011,
+				AA100012,
+				AA100013,
+				AA100014,
+				AA100015,
+				AA100016,
+			);
+			path = 8Spine;
+			sourceTree = "<group>";
+		};
+		AA300003 /* Products */ = {
+			isa = PBXGroup;
+			children = (AA100000);
+			name = Products;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		AA400001 /* 8Spine */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = AA500001;
+			buildPhases = (
+				AA600001 /* Sources */,
+				AA200001 /* Frameworks */,
+				AA600002 /* Resources */,
+			);
+			buildRules = ();
+			dependencies = ();
+			name = 8Spine;
+			productName = 8Spine;
+			productReference = AA100000;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		AA700001 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				LastSwiftUpdateCheck = 1600;
+				LastUpgradeCheck = 1600;
+				TargetAttributes = {
+					AA400001 = {
+						CreatedOnToolsVersion = 16.0;
+					};
+				};
+			};
+			buildConfigurationList = AA500002;
+			compatibilityVersion = "Xcode 15.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (en);
+			mainGroup = AA300001;
+			productRefGroup = AA300003;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (AA400001);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		AA600002 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (AA000008);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		AA600001 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				AA000001,
+				AA000002,
+				AA000003,
+				AA000004,
+				AA000005,
+				AA000006,
+				AA000007,
+				AA000009,
+				AA000010,
+				AA000011,
+				AA000012,
+				AA000013,
+				AA000014,
+				AA000015,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		AA800001 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "";
+				INFOPLIST_FILE = 8Spine/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
+				PRODUCT_BUNDLE_IDENTIFIER = com.8spine.music;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		AA800002 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "";
+				INFOPLIST_FILE = 8Spine/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
+				PRODUCT_BUNDLE_IDENTIFIER = com.8spine.music;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		AA500001 = {
+			isa = XCConfigurationList;
+			buildConfigurations = (AA800001, AA800002);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		AA500002 = {
+			isa = XCConfigurationList;
+			buildConfigurations = (AA800001, AA800002);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = AA700001;
+}
