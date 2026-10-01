@@ -51,7 +51,7 @@ struct ArtistView: View {
 
                     VStack(spacing: 3) {
                         ForEach(Array(artist.tracks.enumerated()), id: \.element.id) { index, track in
-                            NumberedTrackRow(number: index + 1, track: track)
+                            ArtistTrackRow(number: index + 1, track: track)
                         }
                     }
 
@@ -96,7 +96,7 @@ struct ArtistView: View {
     }
 }
 
-struct NumberedTrackRow: View {
+struct ArtistTrackRow: View {
     let number: Int
     let track: Track
 
@@ -107,7 +107,7 @@ struct NumberedTrackRow: View {
                 .foregroundStyle(.white.opacity(0.48))
                 .frame(width: 20)
 
-            ArtworkView(style: track.artwork, cornerRadius: 5)
+            ArtworkView(style: track.artwork, artworkData: track.artworkData, cornerRadius: 5)
                 .frame(width: 43, height: 43)
 
             VStack(alignment: .leading, spacing: 3) {

@@ -5,204 +5,186 @@ struct LibraryView: View {
     @Binding var showSearch: Bool
     @Binding var showAdd: Bool
     @Binding var showProfile: Bool
+    @State private var showCreatePlaylist = false
 
-    @State private var playlistHeaderY: CGFloat = .greatestFiniteMagnitude
-
-    private let columns = Array(repeating: GridItem(.flexible(), spacing: 7), count: 4)
-
-    private var activeTitle: String {
-        playlistHeaderY < 165 ? "Playlists" : "Your Library"
-    }
+    private let columns = Array(repeating: GridItem(.flexible(), spacing: 8), count: 4)
 
     var body: some View {
         GeometryReader { proxy in
-            ZStack(alignment: .top) {
-                Color.fugaciousBackground
-                    .ignoresSafeArea()
+            ScrollView(showsIndicators: false) {
+                VStack(alignment: .leading, spacing: 0) {
+                    topBar(safeTop: proxy.safeAreaInsets.top)
 
-                ScrollView(showsIndicators: false) {
-                    VStack(alignment: .leading, spacing: 22) {
-                        // The large promotional copy has intentionally been removed.
-                        // The floating header now carries the section identity.
-
-                        LazyVGrid(columns: columns, spacing: 7) {
-                            ForEach(app.library.importedTracks.isEmpty ? MockData.libraryTracks : app.library.importedTracks) { track in
-                                ArtworkView(style: track.artwork, cornerRadius: 7)
-                                    .aspectRatio(1, contentMode: .fit)
-                                    .contentShape(Rectangle())
-                                    .onTapGesture {
-                                        app.player.play(track, from: app.library.allTracks)
-                                        app.library.recordPlay(track)
-                                    }
-                                    .contextMenu {
-                                        Button { app.library.toggleFavorite(track) } label: {
-                                            Label(app.library.isFavorite(track) ? "Remove Favorite" : "Favorite", systemImage: app.library.isFavorite(track) ? "heart.slash" : "heart")
-                                        }
-                                    }
-                            }
-                        }
-
-                        Text("PINNED")
-                            .font(.system(size: 8, weight: .bold))
-                            .tracking(2)
-                            .foregroundStyle(.white.opacity(0.42))
+                    if app.library.allTracks.isEmpty {
+                        emptyLibrary
                             .frame(maxWidth: .infinity)
-                            .padding(.top, -7)
-
-                        GeometryReader { sectionProxy in
-                            Color.clear
-                                .preference(
-                                    key: PlaylistHeaderPositionKey.self,
-                                    value: sectionProxy.frame(in: .named("libraryScroll")).minY
-                                )
-                        }
-                        .frame(height: 0)
-
-                        sectionHeader("Playlists")
-
-                        ScrollView(.horizontal, showsIndicators: false) {
-                            HStack(spacing: 9) {
-                                ForEach(MockData.playlists) { playlist in
-                                    PlaylistCard(playlist: playlist)
-                                }
-                            }
-                        }
-
-                        sectionHeader("Albums", chevron: true)
-
-                        ScrollView(.horizontal, showsIndicators: false) {
-                            HStack(spacing: 12) {
-                                ForEach(MockData.albums) { album in
-                                    AlbumCard(album: album)
-                                }
-                            }
-                        }
-
-                        NavigationLink {
-                            ArtistView(artist: MockData.artist)
-                        } label: {
-                            ArtistBanner(artist: MockData.artist)
-                        }
-                        .buttonStyle(.plain)
-
-                        Color.clear.frame(height: 130)
+                            .padding(.top, 120)
+                    } else {
+                        libraryContent
+                            .padding(.horizontal, 17)
+                            .padding(.top, 22)
                     }
-                    .padding(.horizontal, 17)
-                    .padding(.top, proxy.safeAreaInsets.top + 72)
-                    .padding(.bottom, proxy.safeAreaInsets.bottom + 110)
-                }
-                .coordinateSpace(name: "libraryScroll")
-                .onPreferenceChange(PlaylistHeaderPositionKey.self) { value in
-                    playlistHeaderY = value
-                }
 
-                floatingHeader(topInset: proxy.safeAreaInsets.top)
+                    Color.clear.frame(height: 130)
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.bottom, proxy.safeAreaInsets.bottom)
             }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .background(Color.fugaciousBackground)
+            .coordinateSpace(name: "libraryScroll")
         }
         .toolbar(.hidden, for: .navigationBar)
-    }
-
-    private func floatingHeader(topInset: CGFloat) -> some View {
-        HStack(spacing: 0) {
-            Text(activeTitle)
-                .font(.system(size: 19, weight: .bold, design: .rounded))
-                .foregroundStyle(.white)
-                .contentTransition(.opacity)
-
-            Spacer()
-
-            HStack(spacing: 15) {
-                Button { showSearch = true } label: {
-                    Image(systemName: "magnifyingglass")
-                }
-                Button { showAdd = true } label: {
-                    Image(systemName: "plus")
-                }
-                Button { showProfile = true } label: {
-                    Image(systemName: "person.crop.circle")
-                }
-            }
-            .font(.system(size: 20, weight: .medium))
-            .foregroundStyle(.white)
+        .sheet(isPresented: $showCreatePlaylist) {
+            CreatePlaylistView()
+                .environmentObject(app.library)
         }
-        .padding(.horizontal, 17)
-        .frame(height: 54)
-        .background {
-            ZStack {
-                RoundedRectangle(cornerRadius: 18, style: .continuous)
-                    .fill(.ultraThinMaterial)
-
-                RoundedRectangle(cornerRadius: 18, style: .continuous)
-                    .fill(
-                        LinearGradient(
-                            colors: [
-                                Color.fugaciousCard.opacity(0.82),
-                                Color.fugaciousTabBar.opacity(0.72)
-                            ],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        )
-                    )
-
-                RoundedRectangle(cornerRadius: 18, style: .continuous)
-                    .stroke(.white.opacity(0.08), lineWidth: 1)
-            }
-        }
-        .padding(.horizontal, 12)
-        .padding(.top, topInset + 8)
-        .shadow(color: .black.opacity(0.22), radius: 16, y: 8)
-        .animation(.easeOut(duration: 0.18), value: activeTitle)
     }
 
     @ViewBuilder
-    private func sectionHeader(
-        _ title: String,
-        chevron: Bool = false,
-        @ViewBuilder trailing: () -> some View = { EmptyView() }
-    ) -> some View {
-        HStack {
-            Text(title)
-                .font(.system(size: 19, weight: .bold, design: .rounded))
-                .foregroundStyle(.white)
+    private var libraryContent: some View {
+        let tracks = app.library.allTracks
+        let favorites = app.library.favoriteTracks
+        let albums = app.library.albums
 
-            if chevron {
+        if !favorites.isEmpty {
+            Text("PINNED")
+                .font(.system(size: 8, weight: .bold))
+                .tracking(2)
+                .foregroundStyle(.white.opacity(0.42))
+                .frame(maxWidth: .infinity)
+                .padding(.bottom, 10)
+
+            LazyVGrid(columns: columns, spacing: 8) {
+                ForEach(favorites) { track in
+                    ArtworkView(style: track.artwork, artworkData: track.artworkData, cornerRadius: 7)
+                        .aspectRatio(1, contentMode: .fit)
+                        .contentShape(Rectangle())
+                        .onTapGesture { play(track) }
+                }
+            }
+            .padding(.bottom, 28)
+        }
+
+        HStack {
+            Text("Playlists")
+                .font(.system(size: 25, weight: .bold, design: .rounded))
+            Spacer()
+            Button { showCreatePlaylist = true } label: {
+                Image(systemName: "plus")
+                    .font(.system(size: 18, weight: .semibold))
+            }
+            .buttonStyle(.plain)
+        }
+        .foregroundStyle(.white)
+
+        if app.library.playlists.isEmpty {
+            Text("No playlists yet")
+                .font(.system(size: 12, weight: .medium))
+                .foregroundStyle(.white.opacity(0.4))
+                .padding(.top, 8)
+        } else {
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 12) {
+                    ForEach(app.library.playlists) { playlist in
+                        PlaylistCard(playlist: playlist, tracks: tracks)
+                    }
+                }
+                .padding(.top, 12)
+            }
+        }
+
+        if !albums.isEmpty {
+            HStack(spacing: 7) {
+                Text("Albums")
+                    .font(.system(size: 25, weight: .bold, design: .rounded))
                 Image(systemName: "chevron.right")
-                    .font(.system(size: 13, weight: .bold))
+                    .font(.system(size: 14, weight: .bold))
                     .foregroundStyle(.white.opacity(0.6))
             }
+            .padding(.top, 30)
 
-            Spacer()
-            trailing()
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 12) {
+                    ForEach(albums) { album in
+                        AlbumCard(album: album)
+                    }
+                }
+                .padding(.top, 12)
+            }
         }
     }
-}
 
-private struct PlaylistHeaderPositionKey: PreferenceKey {
-    static var defaultValue: CGFloat = .greatestFiniteMagnitude
+    private var emptyLibrary: some View {
+        VStack(spacing: 16) {
+            Button { showAdd = true } label: {
+                Image(systemName: "plus")
+                    .font(.system(size: 28, weight: .medium))
+                    .foregroundStyle(.white)
+                    .frame(width: 72, height: 72)
+                    .background(.white.opacity(0.08))
+                    .clipShape(Circle())
+                    .overlay(Circle().stroke(.white.opacity(0.1), lineWidth: 1))
+            }
+            .buttonStyle(.plain)
 
-    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
-        value = nextValue()
+            Text("Add music")
+                .font(.system(size: 16, weight: .semibold))
+                .foregroundStyle(.white.opacity(0.85))
+        }
+    }
+
+    private func topBar(safeTop: CGFloat) -> some View {
+        HStack(spacing: 0) {
+            Text("Your Library")
+                .font(.system(size: 21, weight: .bold, design: .rounded))
+
+            Spacer()
+
+            HStack(spacing: 19) {
+                Button { showSearch = true } label: { Image(systemName: "magnifyingglass") }
+                Button { showAdd = true } label: { Image(systemName: "plus") }
+                Button { showProfile = true } label: { Image(systemName: "person.crop.circle") }
+            }
+            .font(.system(size: 20, weight: .medium))
+        }
+        .foregroundStyle(.white)
+        .padding(.horizontal, 20)
+        .padding(.top, safeTop + 8)
+        .padding(.bottom, 12)
+        .frame(maxWidth: .infinity)
+        .background {
+            Rectangle()
+                .fill(.ultraThinMaterial)
+                .overlay(alignment: .bottom) {
+                    Rectangle().fill(.white.opacity(0.07)).frame(height: 1)
+                }
+        }
+    }
+
+    private func play(_ track: Track) {
+        app.player.play(track, from: app.library.allTracks)
+        app.library.recordPlay(track)
     }
 }
 
 struct PlaylistCard: View {
     let playlist: Playlist
+    let tracks: [Track]
+
+    private var artwork: Track? { tracks.first { playlist.trackIDs.contains($0.id) } }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 7) {
-            ArtworkView(style: playlist.artwork, cornerRadius: 8)
-                .frame(width: 102, height: 102)
-
+            ArtworkView(style: artwork?.artwork ?? .mono, artworkData: artwork?.artworkData, cornerRadius: 8)
+                .frame(width: 120, height: 120)
             Text(playlist.title)
                 .font(.system(size: 12, weight: .semibold))
                 .lineLimit(1)
-
             Text(playlist.subtitle)
                 .font(.system(size: 9))
                 .foregroundStyle(.white.opacity(0.45))
         }
-        .frame(width: 102, alignment: .leading)
+        .frame(width: 120, alignment: .leading)
     }
 }
 
@@ -211,46 +193,37 @@ struct AlbumCard: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 7) {
-            ArtworkView(style: album.artwork, cornerRadius: 8)
-                .frame(width: 145, height: 145)
-
+            ArtworkView(style: .mono, artworkData: album.artworkData, cornerRadius: 8)
+                .frame(width: 150, height: 150)
             Text(album.title)
                 .font(.system(size: 12, weight: .semibold))
-
+                .lineLimit(1)
             Text(album.artist)
                 .font(.system(size: 10))
                 .foregroundStyle(.white.opacity(0.45))
+                .lineLimit(1)
         }
-        .frame(width: 145, alignment: .leading)
+        .frame(width: 150, alignment: .leading)
     }
 }
 
-struct ArtistBanner: View {
-    let artist: Artist
+struct CreatePlaylistView: View {
+    @EnvironmentObject private var library: LibraryStore
+    @Environment(\.dismiss) private var dismiss
+    @State private var title = ""
 
     var body: some View {
-        HStack(spacing: 14) {
-            ArtworkView(style: artist.artwork, cornerRadius: 10)
-                .frame(width: 72, height: 72)
-
-            VStack(alignment: .leading, spacing: 5) {
-                Text("FULL ARTIST DISCOGRAPHIES")
-                    .font(.system(size: 8, weight: .bold))
-                    .tracking(1.4)
-                    .foregroundStyle(.white.opacity(0.5))
-
-                Text(artist.name)
-                    .font(.system(size: 20, weight: .bold, design: .rounded))
-
-                Text("View artist")
-                    .font(.system(size: 11, weight: .medium))
-                    .foregroundStyle(.white.opacity(0.55))
+        NavigationStack {
+            Form {
+                TextField("Playlist name", text: $title)
+                Button("Create") {
+                    library.createPlaylist(title: title)
+                    dismiss()
+                }
+                .disabled(title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
             }
-
-            Spacer()
+            .navigationTitle("New Playlist")
+            .navigationBarTitleDisplayMode(.inline)
         }
-        .padding(12)
-        .background(Color.fugaciousCard)
-        .clipShape(RoundedRectangle(cornerRadius: 15, style: .continuous))
     }
 }

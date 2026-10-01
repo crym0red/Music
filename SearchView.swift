@@ -68,7 +68,7 @@ struct TrackRow: View {
 
     var body: some View {
         HStack(spacing: 12) {
-            ArtworkView(style: track.artwork, cornerRadius: 8).frame(width: 50, height: 50)
+            ArtworkView(style: track.artwork, artworkData: track.artworkData, cornerRadius: 8).frame(width: 50, height: 50)
             VStack(alignment: .leading, spacing: 3) {
                 Text(track.title).font(.system(size: 14, weight: .semibold)).lineLimit(1)
                 Text(track.artist).font(.system(size: 11)).foregroundStyle(.white.opacity(0.5)).lineLimit(1)
@@ -94,7 +94,7 @@ struct AddMenuView: View {
         NavigationStack {
             List {
                 Button { showImporter = true } label: { Label("Import music", systemImage: "square.and.arrow.down") }
-                Text("Imported files are copied into Fugacious storage so playback remains available offline.")
+                Text("Music is copied into Fugacious storage so it stays available offline.")
                     .font(.footnote).foregroundStyle(.secondary)
             }
             .navigationTitle("Add")

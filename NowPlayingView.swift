@@ -10,7 +10,7 @@ struct MiniPlayer: View {
 
         return AnyView(
             HStack(spacing: 10) {
-                ArtworkView(style: track.artwork, cornerRadius: 6)
+                ArtworkView(style: track.artwork, artworkData: track.artworkData, cornerRadius: 6)
                     .frame(width: 42, height: 42)
 
                 VStack(alignment: .leading, spacing: 2) {
@@ -58,7 +58,7 @@ struct NowPlayingScreen: View {
             Spacer()
 
             if let track = player.currentTrack {
-                ArtworkView(style: track.artwork, cornerRadius: 24)
+                ArtworkView(style: track.artwork, artworkData: track.artworkData, cornerRadius: 24)
                     .frame(width: 300, height: 300)
 
                 VStack(spacing: 5) {
