@@ -25,12 +25,19 @@ struct MiniPlayer: View {
 
                 Spacer()
 
-                Button {
-                    player.togglePlayPause()
-                } label: {
-                    Image(systemName: player.isPlaying ? "pause.fill" : "play.fill")
-                        .font(.system(size: 14, weight: .bold))
-                        .foregroundStyle(.white)
+                if player.playbackError != nil {
+                    Image(systemName: "exclamationmark.triangle.fill")
+                        .font(.system(size: 13, weight: .bold))
+                        .foregroundStyle(.yellow)
+                } else {
+                    Button {
+                        player.togglePlayPause()
+                    } label: {
+                        Image(systemName: player.isPlaying ? "pause.fill" : "play.fill")
+                            .font(.system(size: 14, weight: .bold))
+                            .foregroundStyle(.white)
+                    }
+                    .buttonStyle(.plain)
                 }
                 .buttonStyle(.plain)
             }

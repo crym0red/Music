@@ -12,18 +12,28 @@ final class AudioPlayer: NSObject, ObservableObject {
     @Published private(set) var duration: Double = 0
     @Published private(set) var queue: [Track] = []
     @Published private(set) var queueIndex: Int = 0
+    @Published private(set) var playbackError: String?
     @Published var shuffleEnabled = false
     @Published var repeatMode: RepeatMode = .off
 
     private var player: AVPlayer?
     private var timeObserver: Any?
     private var endObserver: NSObjectProtocol?
+    private var failedObserver: NSObjectProtocol?
+    private var statusObservation: NSKeyValueObservation?
+    private var item: AVPlayerItem?
 
-    private override init() { super.init(); configureAudioSession(); configureRemoteCommands() }
+    private override init() {
+        super.init()
+        configureAudioSession()
+        configureRemoteCommands()
+    }
 
     deinit {
         if let timeObserver, let player { player.removeTimeObserver(timeObserver) }
         if let endObserver { NotificationCenter.default.removeObserver(endObserver) }
+        if let failedObserver { NotificationCenter.default.removeObserver(failedObserver) }
+        statusObservation?.invalidate()
     }
 
     func play(_ track: Track, from tracks: [Track]? = nil) {
@@ -47,30 +57,85 @@ final class AudioPlayer: NSObject, ObservableObject {
     }
 
     private func loadAndPlay(_ track: Track) {
+        playbackError = nil
         currentTrack = track
         progress = 0
         duration = track.duration ?? 0
-        removeEndObserver()
-        guard let url = track.fileURL else {
-            isPlaying = false
-            updateNowPlaying()
+        isPlaying = false
+        removeObservers()
+
+        guard let url = track.fileURL, FileManager.default.fileExists(atPath: url.path) else {
+            fail("The audio file is no longer available.")
             return
         }
-        let item = AVPlayerItem(url: url)
-        player = AVPlayer(playerItem: item)
-        installTimeObserver()
-        endObserver = NotificationCenter.default.addObserver(forName: .AVPlayerItemDidPlayToEndTime, object: item, queue: .main) { [weak self] _ in
+
+        do {
+            try AVAudioSession.sharedInstance().setActive(true, options: [])
+        } catch {
+            fail("Audio output could not be activated: \(error.localizedDescription)")
+            return
+        }
+
+        let newItem = AVPlayerItem(url: url)
+        newItem.preferredForwardBufferDuration = 5
+        item = newItem
+
+        let newPlayer = AVPlayer(playerItem: newItem)
+        newPlayer.automaticallyWaitsToMinimizeStalling = false
+        player = newPlayer
+
+        statusObservation = newItem.observe(\AVPlayerItem.status, options: [.initial, .new]) { [weak self] item, _ in
+            Task { @MainActor in
+                guard let self else { return }
+                switch item.status {
+                case .readyToPlay:
+                    self.duration = item.duration.seconds.isFinite && item.duration.seconds > 0 ? item.duration.seconds : self.duration
+                    self.player?.playImmediately(atRate: 1.0)
+                    self.isPlaying = true
+                    self.playbackError = nil
+                    self.updateNowPlaying()
+                case .failed:
+                    self.fail(item.error?.localizedDescription ?? "This audio file could not be played.")
+                default:
+                    break
+                }
+            }
+        }
+
+        endObserver = NotificationCenter.default.addObserver(
+            forName: .AVPlayerItemDidPlayToEndTime,
+            object: newItem,
+            queue: .main
+        ) { [weak self] _ in
             Task { @MainActor in self?.advanceAfterEnd() }
         }
-        player?.play()
-        isPlaying = true
+
+        failedObserver = NotificationCenter.default.addObserver(
+            forName: .AVPlayerItemFailedToPlayToEndTime,
+            object: newItem,
+            queue: .main
+        ) { [weak self] notification in
+            Task { @MainActor in
+                let error = notification.userInfo?[AVPlayerItemFailedToPlayToEndTimeErrorKey] as? Error
+                self?.fail(error?.localizedDescription ?? "Playback failed.")
+            }
+        }
+
+        installTimeObserver()
         updateNowPlaying()
     }
 
     func togglePlayPause() {
         guard let player else { return }
-        if isPlaying { player.pause() } else { player.play() }
-        isPlaying.toggle(); updateNowPlaying()
+        if isPlaying {
+            player.pause()
+            isPlaying = false
+        } else {
+            do { try AVAudioSession.sharedInstance().setActive(true) } catch { }
+            player.playImmediately(atRate: 1.0)
+            isPlaying = true
+        }
+        updateNowPlaying()
     }
 
     func next() {
@@ -104,7 +169,12 @@ final class AudioPlayer: NSObject, ObservableObject {
         updateNowPlaying()
     }
 
-    func stop() { player?.pause(); isPlaying = false; progress = 0; updateNowPlaying() }
+    func stop() {
+        player?.pause()
+        isPlaying = false
+        progress = 0
+        updateNowPlaying()
+    }
 
     private func advanceAfterEnd() {
         if repeatMode == .one { loadAndPlay(queue[queueIndex]); return }
@@ -114,7 +184,10 @@ final class AudioPlayer: NSObject, ObservableObject {
     private func installTimeObserver() {
         guard let player else { return }
         if let timeObserver { player.removeTimeObserver(timeObserver) }
-        timeObserver = player.addPeriodicTimeObserver(forInterval: CMTime(seconds: 0.25, preferredTimescale: 600), queue: .main) { [weak self, weak player] time in
+        timeObserver = player.addPeriodicTimeObserver(
+            forInterval: CMTime(seconds: 0.25, preferredTimescale: 600),
+            queue: .main
+        ) { [weak self, weak player] time in
             guard let self else { return }
             let current = time.seconds
             let total = player?.currentItem?.duration.seconds ?? 0
@@ -129,29 +202,68 @@ final class AudioPlayer: NSObject, ObservableObject {
             let session = AVAudioSession.sharedInstance()
             try session.setCategory(.playback, mode: .default, options: [.allowAirPlay, .allowBluetoothA2DP])
             try session.setActive(true)
-        } catch { print("Audio session error:", error) }
+        } catch {
+            print("Audio session error:", error)
+        }
     }
 
     private func configureRemoteCommands() {
         let center = MPRemoteCommandCenter.shared()
-        center.playCommand.addTarget { [weak self] _ in self?.player?.play(); self?.isPlaying = true; self?.updateNowPlaying(); return .success }
-        center.pauseCommand.addTarget { [weak self] _ in self?.player?.pause(); self?.isPlaying = false; self?.updateNowPlaying(); return .success }
+        center.playCommand.addTarget { [weak self] _ in
+            guard let self, let player = self.player else { return .commandFailed }
+            player.playImmediately(atRate: 1.0)
+            self.isPlaying = true
+            self.updateNowPlaying()
+            return .success
+        }
+        center.pauseCommand.addTarget { [weak self] _ in
+            guard let self, let player = self.player else { return .commandFailed }
+            player.pause()
+            self.isPlaying = false
+            self.updateNowPlaying()
+            return .success
+        }
         center.nextTrackCommand.addTarget { [weak self] _ in self?.next(); return .success }
         center.previousTrackCommand.addTarget { [weak self] _ in self?.previous(); return .success }
         center.changePlaybackPositionCommand.addTarget { [weak self] event in
             guard let self, let event = event as? MPChangePlaybackPositionCommandEvent else { return .commandFailed }
-            player?.seek(to: CMTime(seconds: event.positionTime, preferredTimescale: 600)); return .success
+            self.player?.seek(to: CMTime(seconds: event.positionTime, preferredTimescale: 600))
+            return .success
         }
     }
 
     private func updateNowPlaying() {
-        guard let track = currentTrack else { MPNowPlayingInfoCenter.default().nowPlayingInfo = nil; return }
-        var info: [String: Any] = [MPMediaItemPropertyTitle: track.title, MPMediaItemPropertyArtist: track.artist, MPNowPlayingInfoPropertyElapsedPlaybackTime: progress * duration, MPNowPlayingInfoPropertyPlaybackRate: isPlaying ? 1.0 : 0.0]
+        guard let track = currentTrack else {
+            MPNowPlayingInfoCenter.default().nowPlayingInfo = nil
+            return
+        }
+        var info: [String: Any] = [
+            MPMediaItemPropertyTitle: track.title,
+            MPMediaItemPropertyArtist: track.artist,
+            MPNowPlayingInfoPropertyElapsedPlaybackTime: progress * duration,
+            MPNowPlayingInfoPropertyPlaybackRate: isPlaying ? 1.0 : 0.0
+        ]
         if duration > 0 { info[MPMediaItemPropertyPlaybackDuration] = duration }
+        if let data = track.artworkData, let image = UIImage(data: data) {
+            info[MPMediaItemPropertyArtwork] = MPMediaItemArtwork(boundsSize: image.size) { _ in image }
+        }
         MPNowPlayingInfoCenter.default().nowPlayingInfo = info
     }
 
-    private func removeEndObserver() {
+    private func fail(_ message: String) {
+        player?.pause()
+        isPlaying = false
+        playbackError = message
+        updateNowPlaying()
+        print("Fugacious playback error:", message)
+    }
+
+    private func removeObservers() {
         if let endObserver { NotificationCenter.default.removeObserver(endObserver); self.endObserver = nil }
+        if let failedObserver { NotificationCenter.default.removeObserver(failedObserver); self.failedObserver = nil }
+        statusObservation?.invalidate()
+        statusObservation = nil
+        if let timeObserver, let player { player.removeTimeObserver(timeObserver) }
+        timeObserver = nil
     }
 }

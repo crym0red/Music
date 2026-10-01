@@ -13,34 +13,36 @@ struct LibraryView: View {
 
     var body: some View {
         GeometryReader { proxy in
-            ScrollView(showsIndicators: false) {
-                VStack(alignment: .leading, spacing: 0) {
-                    // Keep the bar at its existing height, but place it below the
-                    // status/Dynamic Island region. The bar remains part of the
-                    // ScrollView, so it scrolls away with the library instead of
-                    // floating over it.
-                    Color.clear
-                        .frame(height: max(proxy.safeAreaInsets.top, 24))
+            VStack(spacing: 0) {
+                // The header is outside the scrolling content so it stays fixed.
+                // Safe-area padding is applied above it, preserving the same 64pt
+                // header height while keeping it below the Dynamic Island/status bar.
+                Color.clear
+                    .frame(height: proxy.safeAreaInsets.top)
 
-                    topBar()
+                topBar()
 
-                    if app.library.allTracks.isEmpty {
-                        emptyLibrary
-                            .frame(maxWidth: .infinity)
-                            .padding(.top, 120)
-                    } else {
-                        libraryContent
-                            .padding(.horizontal, 17)
-                            .padding(.top, 22)
+                ScrollView(showsIndicators: false) {
+                    VStack(alignment: .leading, spacing: 0) {
+                        if app.library.allTracks.isEmpty {
+                            emptyLibrary
+                                .frame(maxWidth: .infinity)
+                                .padding(.top, 120)
+                        } else {
+                            libraryContent
+                                .padding(.horizontal, 17)
+                                .padding(.top, 22)
+                        }
+
+                        Color.clear.frame(height: 130)
                     }
-
-                    Color.clear.frame(height: 130)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.bottom, proxy.safeAreaInsets.bottom)
                 }
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(.bottom, proxy.safeAreaInsets.bottom)
+                .background(Color.fugaciousBackground)
             }
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
             .background(Color.fugaciousBackground)
-            .coordinateSpace(name: "libraryScroll")
         }
         .toolbar(.hidden, for: .navigationBar)
         .sheet(isPresented: $showCreatePlaylist) {
@@ -49,9 +51,7 @@ struct LibraryView: View {
         }
         .sheet(isPresented: $showImporter) {
             FugaciousDocumentPicker { urls in
-                Task {
-                    await app.library.importFiles(urls)
-                }
+                Task { await app.library.importFiles(urls) }
             }
             .ignoresSafeArea()
         }
@@ -94,12 +94,7 @@ struct LibraryView: View {
         }
         .foregroundStyle(.white)
 
-        if app.library.playlists.isEmpty {
-            Text("No playlists yet")
-                .font(.system(size: 12, weight: .medium))
-                .foregroundStyle(.white.opacity(0.4))
-                .padding(.top, 8)
-        } else {
+        if !app.library.playlists.isEmpty {
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 12) {
                     ForEach(app.library.playlists) { playlist in

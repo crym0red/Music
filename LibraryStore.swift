@@ -84,9 +84,16 @@ final class LibraryStore: ObservableObject {
         let destination = audioDirectory.appendingPathComponent(UUID().uuidString + "." + ext)
 
         do {
-            // Copy while the security-scoped URL is active. This is the important
-            // part for iCloud Drive/On My iPhone locations selected by UIDocumentPicker.
-            try fileManager.copyItem(at: url, to: destination)
+            // UIDocumentPicker with asCopy:true normally gives us a local temporary
+            // copy. Some Files providers still expose a coordinated URL, though, so
+            // keep a byte-copy fallback. Both paths run while the security scope is
+            // active.
+            do {
+                try fileManager.copyItem(at: url, to: destination)
+            } catch {
+                let data = try Data(contentsOf: url, options: [.mappedIfSafe])
+                try data.write(to: destination, options: [.atomic])
+            }
 
             let fallbackTitle = url.deletingPathExtension().lastPathComponent
             return Track(
@@ -185,9 +192,18 @@ final class LibraryStore: ObservableObject {
             guard let url = track.fileURL else { return false }
             return fileManager.fileExists(atPath: url.path)
         }
+        // Remove the old placeholder playlist from early builds and discard
+        // references to tracks that no longer exist on disk.
+        let validIDs = Set(importedTracks.map(\.id))
         playlists = state.playlists
-        favorites = Set(state.favorites)
-        recentlyPlayed = state.recentlyPlayed
+            .filter { $0.title.trimmingCharacters(in: .whitespacesAndNewlines) != "999" }
+            .map { playlist in
+                var cleaned = playlist
+                cleaned.trackIDs = playlist.trackIDs.filter { validIDs.contains($0) }
+                return cleaned
+            }
+        favorites = Set(state.favorites.filter { validIDs.contains($0) })
+        recentlyPlayed = state.recentlyPlayed.filter { validIDs.contains($0) }
     }
 
     private func save() {
