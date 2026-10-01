@@ -4,7 +4,6 @@ struct RootView: View {
     @StateObject private var app = AppContainer()
     @State private var selection = 0
     @State private var showSearch = false
-    @State private var showAdd = false
     @State private var showProfile = false
     @AppStorage("hasCompletedFugaciousOnboarding") private var hasCompletedOnboarding = false
 
@@ -29,7 +28,7 @@ struct RootView: View {
             Group {
                 switch selection {
                 case 0:
-                    LibraryView(showSearch: $showSearch, showAdd: $showAdd, showProfile: $showProfile)
+                    LibraryView(showSearch: $showSearch, showProfile: $showProfile)
                 case 1:
                     SearchView()
                 case 2:
@@ -37,7 +36,7 @@ struct RootView: View {
                 case 3:
                     NowPlayingScreen(player: app.player)
                 default:
-                    LibraryView(showSearch: $showSearch, showAdd: $showAdd, showProfile: $showProfile)
+                    LibraryView(showSearch: $showSearch, showProfile: $showProfile)
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -53,7 +52,6 @@ struct RootView: View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .sheet(isPresented: $showSearch) { SearchView() }
-        .sheet(isPresented: $showAdd) { AddMenuView() }
         .sheet(isPresented: $showProfile) { ProfileView() }
         .environmentObject(app)
         .environmentObject(app.library)

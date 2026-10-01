@@ -48,45 +48,87 @@ final class LibraryStore: ObservableObject {
     }
 
     func importFiles(_ urls: [URL]) async {
-        for url in urls { await importFile(url) }
-        save()
+        var imported: [Track] = []
+
+        for url in urls {
+            if let track = await importFile(url) {
+                imported.append(track)
+            }
+        }
+
+        // Add the copied files immediately. Metadata enrichment happens after the
+        // copy succeeds, so a valid audio file can never disappear just because
+        // metadata loading is slow or unsupported by AVFoundation.
+        if !imported.isEmpty {
+            importedTracks.append(contentsOf: imported)
+            save()
+        }
+
+        for track in imported {
+            await enrichMetadata(for: track)
+        }
     }
 
-    private func importFile(_ url: URL) async {
+    private func importFile(_ url: URL) async -> Track? {
         let accessed = url.startAccessingSecurityScopedResource()
         defer {
             if accessed { url.stopAccessingSecurityScopedResource() }
         }
 
+        // The Files app can return a URL whose extension is not populated in the
+        // way UTType expects. We validate common audio extensions as a fallback.
         let ext = url.pathExtension.lowercased()
-        guard ["mp3", "m4a", "aac", "wav", "aiff", "aif", "caf", "flac", "alac"].contains(ext) else { return }
+        let supported = ["mp3", "m4a", "aac", "wav", "aiff", "aif", "caf", "flac", "alac", "m4b", "mp4"]
+        guard supported.contains(ext) else { return nil }
 
         let destination = audioDirectory.appendingPathComponent(UUID().uuidString + "." + ext)
 
         do {
+            // Copy while the security-scoped URL is active. This is the important
+            // part for iCloud Drive/On My iPhone locations selected by UIDocumentPicker.
             try fileManager.copyItem(at: url, to: destination)
-            let asset = AVURLAsset(url: destination)
-            let metadata = asset.commonMetadata
-            let title = metadata.firstValue(for: .commonKeyTitle) ?? url.deletingPathExtension().lastPathComponent
-            let artist = metadata.firstValue(for: .commonKeyArtist) ?? "Unknown Artist"
-            let album = metadata.firstValue(for: .commonKeyAlbumName)
-            let duration = asset.duration.seconds.isFinite ? asset.duration.seconds : nil
-            let artworkData = metadata.first { $0.commonKey == .commonKeyArtwork }?.dataValue
 
-            importedTracks.append(
-                Track(
-                    title: title,
-                    artist: artist,
-                    album: album,
-                    artwork: .mono,
-                    artworkData: artworkData,
-                    fileURL: destination,
-                    duration: duration
-                )
+            let fallbackTitle = url.deletingPathExtension().lastPathComponent
+            return Track(
+                title: fallbackTitle.isEmpty ? "Untitled" : fallbackTitle,
+                artist: "Unknown Artist",
+                album: nil,
+                artwork: .mono,
+                artworkData: nil,
+                fileURL: destination,
+                duration: nil
             )
         } catch {
             print("Fugacious import error:", error)
+            return nil
         }
+    }
+
+    private func enrichMetadata(for track: Track) async {
+        guard let url = track.fileURL else { return }
+
+        let asset = AVURLAsset(url: url)
+        let metadata = asset.commonMetadata
+        let title = metadata.firstValue(for: .commonKeyTitle)
+        let artist = metadata.firstValue(for: .commonKeyArtist)
+        let album = metadata.firstValue(for: .commonKeyAlbumName)
+        let artworkData = metadata.first { $0.commonKey == .commonKeyArtwork }?.dataValue
+        let duration = asset.duration.seconds.isFinite ? asset.duration.seconds : nil
+
+        guard let index = importedTracks.firstIndex(where: { $0.id == track.id }) else { return }
+
+        let current = importedTracks[index]
+        importedTracks[index] = Track(
+            id: current.id,
+            title: title?.isEmpty == false ? title! : current.title,
+            artist: artist?.isEmpty == false ? artist! : current.artist,
+            album: album?.isEmpty == false ? album : current.album,
+            artwork: current.artwork,
+            artworkData: artworkData ?? current.artworkData,
+            fileURL: current.fileURL,
+            duration: duration ?? current.duration
+        )
+        save()
     }
 
     func createPlaylist(title: String) {

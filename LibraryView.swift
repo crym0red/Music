@@ -3,9 +3,9 @@ import SwiftUI
 struct LibraryView: View {
     @EnvironmentObject private var app: AppContainer
     @Binding var showSearch: Bool
-    @Binding var showAdd: Bool
     @Binding var showProfile: Bool
     @State private var showCreatePlaylist = false
+    @State private var showImporter = false
 
     private let columns = Array(repeating: GridItem(.flexible(), spacing: 8), count: 4)
 
@@ -13,7 +13,14 @@ struct LibraryView: View {
         GeometryReader { proxy in
             ScrollView(showsIndicators: false) {
                 VStack(alignment: .leading, spacing: 0) {
-                    topBar(safeTop: proxy.safeAreaInsets.top)
+                    // Keep the bar at its existing height, but place it below the
+                    // status/Dynamic Island region. The bar remains part of the
+                    // ScrollView, so it scrolls away with the library instead of
+                    // floating over it.
+                    Color.clear
+                        .frame(height: max(proxy.safeAreaInsets.top, 24))
+
+                    topBar()
 
                     if app.library.allTracks.isEmpty {
                         emptyLibrary
@@ -37,6 +44,20 @@ struct LibraryView: View {
         .sheet(isPresented: $showCreatePlaylist) {
             CreatePlaylistView()
                 .environmentObject(app.library)
+        }
+        .fileImporter(
+            isPresented: $showImporter,
+            allowedContentTypes: [.audio],
+            allowsMultipleSelection: true
+        ) { result in
+            switch result {
+            case .success(let urls):
+                Task {
+                    await app.library.importFiles(urls)
+                }
+            case .failure(let error):
+                print("Fugacious file picker error:", error)
+            }
         }
     }
 
@@ -116,7 +137,7 @@ struct LibraryView: View {
 
     private var emptyLibrary: some View {
         VStack(spacing: 16) {
-            Button { showAdd = true } label: {
+            Button { showImporter = true } label: {
                 Image(systemName: "plus")
                     .font(.system(size: 28, weight: .medium))
                     .foregroundStyle(.white)
@@ -133,7 +154,7 @@ struct LibraryView: View {
         }
     }
 
-    private func topBar(safeTop: CGFloat) -> some View {
+    private func topBar() -> some View {
         HStack(spacing: 0) {
             Text("Your Library")
                 .font(.system(size: 21, weight: .bold, design: .rounded))
@@ -142,16 +163,15 @@ struct LibraryView: View {
 
             HStack(spacing: 19) {
                 Button { showSearch = true } label: { Image(systemName: "magnifyingglass") }
-                Button { showAdd = true } label: { Image(systemName: "plus") }
+                Button { showImporter = true } label: { Image(systemName: "plus") }
                 Button { showProfile = true } label: { Image(systemName: "person.crop.circle") }
             }
             .font(.system(size: 20, weight: .medium))
         }
         .foregroundStyle(.white)
         .padding(.horizontal, 20)
-        .padding(.top, safeTop + 8)
-        .padding(.bottom, 12)
         .frame(maxWidth: .infinity)
+        .frame(height: 64)
         .background {
             Rectangle()
                 .fill(.ultraThinMaterial)
